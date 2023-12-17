@@ -1,7 +1,7 @@
 const express = require("express");
 const ConnectDB = require("./config/ConnectDB");
 const bodyParser = require("body-parser");
-const port = process.env.PORT || 443;
+const port = process.env.PORT || 8000;
 const dotenv = require("dotenv").config();
 const cors = require("cors");
 const app = express();
