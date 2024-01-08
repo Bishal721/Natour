@@ -25,6 +25,11 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "+977",
     },
+    image: {
+      type: String,
+      required: [true, "please provide your Image"],
+      default: "https://i.ibb.co/4pDNDk1/avatar.png",
+    },
   },
   {
     timestamps: true,

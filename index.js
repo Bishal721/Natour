@@ -9,6 +9,8 @@ const cookieParser = require("cookie-parser");
 
 // important routes
 const userRoute = require("./routes/userRoute");
+const authRoutes = require("./routes/authRoute");
+
 const errorhandler = require("./middleware/errorhandler");
 
 // Middleware
@@ -16,11 +18,17 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // Middleware Routes
 app.use("/api/v1/users", userRoute);
-app.use(errorhandler);
+app.use("/api/auth", authRoutes);
+app.use(errorhandler); 
 //Home Route
 app.get("/", (req, res) => {
   res.status(200).json({

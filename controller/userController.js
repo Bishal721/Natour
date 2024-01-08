@@ -59,7 +59,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("Error in creating a user");
   }
 });
-
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -249,7 +248,6 @@ const forgetPassword = asyncHandler(async (req, res) => {
       message: "Reset URL Sent",
     });
   } catch (error) {
-    console.log(error);
     res.status(500);
     throw new Error("Email not Sent, Please try Again");
   }
@@ -284,6 +282,56 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+const google = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (user) {
+    const token = generatetoken(user._id);
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // expires in 1 day
+      secure: true,
+      sameSite: "none",
+    });
+    const { _id, name, email, phone } = user;
+    res.status(200).json({
+      _id,
+      name,
+      email,
+      phone,
+      token,
+    });
+  } else {
+    const generatedPassword =
+      Math.random().toString(36).slice(-8) +
+      Math.random().toString(36).slice(-8);
+    const newUser = new User({
+      name:
+        req.body.name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-8),
+      email: req.body.email,
+      password: generatedPassword,
+      image: req.body.photo,
+    });
+    await newUser.save();
+    const token = generatetoken(newUser._id);
+    res.cookie("token", token, {
+      path: "/",
+      httpOnly: true,
+      expires: new Date(Date.now() + 1000 * 86400), // expires in 1 day
+      secure: true,
+      sameSite: "none",
+    });
+    const { _id, name, email, phone } = newUser;
+    res.status(200).json({
+      _id,
+      name,
+      email,
+      phone,  
+      token,
+    });
+  }
+});
 
 module.exports = {
   registerUser,
@@ -295,4 +343,5 @@ module.exports = {
   changePassword,
   forgetPassword,
   resetPassword,
+  google,
 };
