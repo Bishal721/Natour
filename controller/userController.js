@@ -3,9 +3,11 @@ const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const bycrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
+const Otp = require("../models/otpModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const axios = require("axios");
+const generateOTP = require("../utils/generateOTP");
 
 const generatetoken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -29,7 +31,6 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Email Has already been registered");
   }
-
   const user = await User.create({
     name,
     email,
@@ -327,12 +328,82 @@ const google = asyncHandler(async (req, res, next) => {
       _id,
       name,
       email,
-      phone,  
+      phone,
       token,
     });
   }
 });
 
+const generateEmailOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Please fill all the required fields");
+  }
+
+  let Emailotp = await Otp.findOne({ email });
+
+  if (Emailotp) {
+    await Otp.deleteOne();
+  }
+
+  const otp = generateOTP();
+
+  console.log(otp);
+
+  await new Otp({
+    email,
+    otp,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 5 * (60 * 1000),
+  }).save();
+
+  const message = `
+  <h2>Hello User</h2>
+  <p>Please use this otp below to create your account .</p>
+  <p>This otp is only valid for only 5 Minutes.</p>
+  ${otp}
+  <p> Regards. </p>
+  `;
+
+  const subject = "Account Create OTP";
+  const send_to = email;
+  const sent_from = process.env.EMAIL_USER;
+
+  try {
+    await sendEmail(sent_from, send_to, subject, message);
+    res.status(200).json({
+      success: true,
+      message: "Otp Sent",
+    });
+  } catch (error) {
+    res.status(500);
+    throw new Error("Email not Sent, Please try Again");
+  }
+});
+
+const otpCompare = asyncHandler(async (req, res) => {
+  const { otp } = req.body;
+
+  if (!otp) {
+    res.status(400);
+    throw new Error("Please Fill all required fields");
+  }
+
+  const UserOtp = await Otp.findOne({
+    otp,
+    expiresAt: { $gt: Date.now() },
+  });
+  if (UserOtp) {
+    res.status(200).json({
+      message: "Matched",
+    });
+  } else {
+    res.status(404);
+    throw new Error("Inavlid or Expired Otp");
+  }
+});
 module.exports = {
   registerUser,
   loginUser,
@@ -344,4 +415,6 @@ module.exports = {
   forgetPassword,
   resetPassword,
   google,
+  generateEmailOtp,
+  otpCompare,
 };

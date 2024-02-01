@@ -10,6 +10,8 @@ const {
   changePassword,
   forgetPassword,
   resetPassword,
+  generateEmailOtp,
+  otpCompare,
 } = require("../controller/userController");
 const { Protected } = require("../middleware/authMiddleware");
 
@@ -23,5 +25,7 @@ router.patch("/updateuser", Protected, userUpdate);
 router.patch("/changepassword", Protected, changePassword);
 router.post("/forgotpassword", forgetPassword);
 router.put("/resetpassword/:resetToken", resetPassword);
+router.post("/otp", generateEmailOtp);
+router.post("/compareotp", otpCompare);
 
 module.exports = router;
