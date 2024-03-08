@@ -24,11 +24,36 @@ const userSchema = mongoose.Schema(
     phone: {
       type: String,
       default: "+977",
+      required: [true, "Please add your phone number"],
     },
     image: {
       type: String,
       required: [true, "please provide your Image"],
       default: "https://i.ibb.co/4pDNDk1/avatar.png",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    bio: {
+      type: String,
+      required: [true, "Please add your Bio"],
+      default: "bio",
+    },
+    city: {
+      type: String,
+      required: [true, "Please add your city"],
+      default: "ABC",
+    },
+    address: {
+      type: String,
+      required: [true, "Please add your address"],
+      default: "Xyz",
+    },
+    country: {
+      type: String,
+      required: [true, "Please add your country"],
+      default: "Xyz",
     },
   },
   {

@@ -47,12 +47,29 @@ const registerUser = asyncHandler(async (req, res) => {
     sameSite: "none",
   });
   if (user) {
-    const { _id, name, email, phone } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      isVerified,
+      image,
+      city,
+      address,
+      country,
+    } = user;
     res.status(201).json({
       _id,
       name,
       email,
       phone,
+      isVerified,
+      bio,
+      image,
+      city,
+      address,
+      country,
       token,
     });
   } else {
@@ -85,12 +102,29 @@ const loginUser = asyncHandler(async (req, res) => {
     sameSite: "none",
   });
   if (user && CorrectPassword) {
-    const { _id, name, email, phone } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      isVerified,
+      image,
+      city,
+      address,
+      country,
+    } = user;
     res.status(200).json({
       _id,
       name,
       email,
       phone,
+      isVerified,
+      bio,
+      image,
+      city,
+      address,
+      country,
       token,
     });
   } else {
@@ -128,12 +162,29 @@ const loginStatus = asyncHandler(async (req, res) => {
 const getUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (user) {
-    const { _id, name, email, phone } = user;
+    const {
+      _id,
+      name,
+      email,
+      bio,
+      phone,
+      isVerified,
+      image,
+      city,
+      address,
+      country,
+    } = user;
     res.status(200).json({
       _id,
       name,
       email,
       phone,
+      bio,
+      isVerified,
+      city,
+      address,
+      country,
+      image,
     });
   } else {
     res.status(400);
@@ -146,16 +197,23 @@ const userUpdate = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
-    const { name, email, phone } = user;
+    const { name, email, phone, bio, city, address, country } = user;
     user.email = email;
     user.name = req.body.name || name;
     user.phone = req.body.phone || phone;
-
+    user.bio = req.body.bio || bio;
+    user.city = req.body.city || city;
+    user.address = req.body.address || address;
+    user.country = req.body.country || country;
     const updatedUser = await user.save();
     res.status(200).json({
       name: updatedUser.name,
       email: updatedUser.email,
       phone: updatedUser.phone,
+      bio: updatedUser.bio,
+      city: updatedUser.city,
+      address: updatedUser.address,
+      country: updatedUser.country,
     });
   } else {
     res.status(404);
@@ -294,13 +352,15 @@ const google = asyncHandler(async (req, res, next) => {
       secure: true,
       sameSite: "none",
     });
-    const { _id, name, email, phone } = user;
+    const { _id, name, email, phone, bio, image } = user;
     res.status(200).json({
       _id,
       name,
       email,
       phone,
       token,
+      bio,
+      image,
     });
   } else {
     const generatedPassword =
@@ -323,37 +383,38 @@ const google = asyncHandler(async (req, res, next) => {
       secure: true,
       sameSite: "none",
     });
-    const { _id, name, email, phone } = newUser;
+    const { _id, name, email, phone, bio, image } = newUser;
     res.status(200).json({
       _id,
       name,
       email,
       phone,
       token,
+      bio,
+      image,
     });
   }
 });
 
 const generateEmailOtp = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
+  const user = await User.findById(req.user._id);
+  if (!user) {
     res.status(400);
-    throw new Error("Please fill all the required fields");
+    throw new Error("User not found. Please Register first");
   }
-
-  let Emailotp = await Otp.findOne({ email });
-
+  if (user.isVerified) {
+    res.status(400);
+    throw new Error("User already verified");
+  }
+  let Emailotp = await Otp.findOne({ userId: user._id });
   if (Emailotp) {
     await Otp.deleteOne();
   }
-
   const otp = generateOTP();
-
   console.log(otp);
 
   await new Otp({
-    email,
+    userId: user._id,
     otp,
     createdAt: Date.now(),
     expiresAt: Date.now() + 5 * (60 * 1000),
@@ -368,14 +429,14 @@ const generateEmailOtp = asyncHandler(async (req, res) => {
   `;
 
   const subject = "Account Create OTP";
-  const send_to = email;
+  const send_to = user.email;
   const sent_from = process.env.EMAIL_USER;
 
   try {
     await sendEmail(sent_from, send_to, subject, message);
     res.status(200).json({
       success: true,
-      message: "Otp Sent",
+      message: "Verification Email Sent",
     });
   } catch (error) {
     res.status(500);
@@ -385,25 +446,30 @@ const generateEmailOtp = asyncHandler(async (req, res) => {
 
 const otpCompare = asyncHandler(async (req, res) => {
   const { otp } = req.body;
-
+  const user = await User.findById(req.user._id);
   if (!otp) {
     res.status(400);
     throw new Error("Please Fill all required fields");
   }
-
   const UserOtp = await Otp.findOne({
+    userId: user._id,
     otp,
     expiresAt: { $gt: Date.now() },
   });
-  if (UserOtp) {
-    res.status(200).json({
-      message: "Matched",
-    });
-  } else {
+  if (!UserOtp) {
     res.status(404);
-    throw new Error("Inavlid or Expired Otp");
+    throw new Error("Invalid Otp or expired");
   }
+
+  if (user.isVerified) {
+    res.status(400);
+    throw new Error("User is already verified");
+  }
+  user.isVerified = true;
+  await user.save();
+  res.status(200).json({ message: "Account Verification Successful" });
 });
+
 module.exports = {
   registerUser,
   loginUser,

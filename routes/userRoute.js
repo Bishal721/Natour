@@ -25,7 +25,7 @@ router.patch("/updateuser", Protected, userUpdate);
 router.patch("/changepassword", Protected, changePassword);
 router.post("/forgotpassword", forgetPassword);
 router.put("/resetpassword/:resetToken", resetPassword);
-router.post("/otp", generateEmailOtp);
-router.post("/compareotp", otpCompare);
+router.post("/otp",Protected, generateEmailOtp);
+router.post("/compareotp",Protected, otpCompare);
 
 module.exports = router;

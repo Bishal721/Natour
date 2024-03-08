@@ -2,7 +2,7 @@ const express = require("express");
 const ConnectDB = require("./config/ConnectDB");
 const bodyParser = require("body-parser");
 const port = process.env.PORT || 8000;
-const dotenv = require("dotenv").config();
+require("dotenv").config();
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -10,6 +10,7 @@ const cookieParser = require("cookie-parser");
 // important routes
 const userRoute = require("./routes/userRoute");
 const authRoutes = require("./routes/authRoute");
+const packageRoute = require("./routes/packageRoute");
 
 const errorhandler = require("./middleware/errorhandler");
 
@@ -28,7 +29,8 @@ app.use(
 // Middleware Routes
 app.use("/api/v1/users", userRoute);
 app.use("/api/auth", authRoutes);
-app.use(errorhandler); 
+app.use("/api/v1/package", packageRoute);
+app.use(errorhandler);
 //Home Route
 app.get("/", (req, res) => {
   res.status(200).json({
