@@ -58,6 +58,7 @@ const registerUser = asyncHandler(async (req, res) => {
       city,
       address,
       country,
+      role,
     } = user;
     res.status(201).json({
       _id,
@@ -70,6 +71,7 @@ const registerUser = asyncHandler(async (req, res) => {
       city,
       address,
       country,
+      role,
       token,
     });
   } else {
@@ -113,6 +115,7 @@ const loginUser = asyncHandler(async (req, res) => {
       city,
       address,
       country,
+      role,
     } = user;
     res.status(200).json({
       _id,
@@ -125,6 +128,7 @@ const loginUser = asyncHandler(async (req, res) => {
       city,
       address,
       country,
+      role,
       token,
     });
   } else {
@@ -173,6 +177,7 @@ const getUser = asyncHandler(async (req, res) => {
       city,
       address,
       country,
+      role,
     } = user;
     res.status(200).json({
       _id,
@@ -185,6 +190,7 @@ const getUser = asyncHandler(async (req, res) => {
       address,
       country,
       image,
+      role,
     });
   } else {
     res.status(400);
@@ -197,7 +203,7 @@ const userUpdate = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
-    const { name, email, phone, bio, city, address, country } = user;
+    const { name, email, phone, bio, city, address, role, country } = user;
     user.email = email;
     user.name = req.body.name || name;
     user.phone = req.body.phone || phone;
@@ -214,6 +220,7 @@ const userUpdate = asyncHandler(async (req, res) => {
       city: updatedUser.city,
       address: updatedUser.address,
       country: updatedUser.country,
+      role: updatedUser.role,
     });
   } else {
     res.status(404);
@@ -352,7 +359,18 @@ const google = asyncHandler(async (req, res, next) => {
       secure: true,
       sameSite: "none",
     });
-    const { _id, name, email, phone, bio, image } = user;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      image,
+      city,
+      address,
+      role,
+      country,
+    } = user;
     res.status(200).json({
       _id,
       name,
@@ -361,6 +379,10 @@ const google = asyncHandler(async (req, res, next) => {
       token,
       bio,
       image,
+      city,
+      address,
+      role,
+      country,
     });
   } else {
     const generatedPassword =
@@ -383,7 +405,18 @@ const google = asyncHandler(async (req, res, next) => {
       secure: true,
       sameSite: "none",
     });
-    const { _id, name, email, phone, bio, image } = newUser;
+    const {
+      _id,
+      name,
+      email,
+      phone,
+      bio,
+      image,
+      city,
+      address,
+      role,
+      country,
+    } = newUser;
     res.status(200).json({
       _id,
       name,
@@ -391,6 +424,10 @@ const google = asyncHandler(async (req, res, next) => {
       phone,
       token,
       bio,
+      city,
+      address,
+      role,
+      country,
       image,
     });
   }
