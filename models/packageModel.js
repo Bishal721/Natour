@@ -11,10 +11,6 @@ const PackageSchema = mongoose.Schema(
       type: String,
       required: [true, "A Tour Must have a duration "],
     },
-    rating: {
-      type: Number,
-      default: 4.5,
-    },
     location: {
       type: String,
       required: [true, "A Tour Must have a Location"],
@@ -25,15 +21,8 @@ const PackageSchema = mongoose.Schema(
     },
     difficulty: {
       type: String,
-      required: [true, "A Group must have a difficulty"],
-    },
-    ratingsAverage: {
-      type: Number,
-      default: 4.5,
-    },
-    ratingsQuantity: {
-      type: Number,
-      default: 0,
+      enum: ["Easy", "Medium", "Hard"],
+      required: [true, "A Tour must have a difficulty"],
     },
     price: {
       type: Number,
@@ -41,12 +30,7 @@ const PackageSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      // required: [true, "Please add a description"],
-      trim: true,
-    },
-    summary: {
-      type: String,
-      required: [true, "A Tour Must have a Summary"],
+      required: [true, "Tour Must have a description"],
       trim: true,
     },
     image: {

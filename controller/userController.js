@@ -81,7 +81,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   if (!email || !password) {
     res.status(400);
     throw new Error("Please fill all the required fields");
@@ -95,7 +94,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const CorrectPassword = await bycrypt.compare(password, user.password);
 
   const token = generatetoken(user._id);
-
   res.cookie("token", token, {
     path: "/",
     httpOnly: true,
@@ -191,7 +189,7 @@ const getUser = asyncHandler(async (req, res) => {
       country,
       image,
       role,
-    });
+    }); 
   } else {
     res.status(400);
     throw new Error("User not found");
@@ -203,7 +201,8 @@ const userUpdate = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
   if (user) {
-    const { name, email, phone, bio, city, address, role, country } = user;
+    const { name, email, phone, bio, city, address, role, country, image } =
+      user;
     user.email = email;
     user.name = req.body.name || name;
     user.phone = req.body.phone || phone;
@@ -211,6 +210,7 @@ const userUpdate = asyncHandler(async (req, res) => {
     user.city = req.body.city || city;
     user.address = req.body.address || address;
     user.country = req.body.country || country;
+    user.image = req.body.image || image;
     const updatedUser = await user.save();
     res.status(200).json({
       name: updatedUser.name,
@@ -221,6 +221,7 @@ const userUpdate = asyncHandler(async (req, res) => {
       address: updatedUser.address,
       country: updatedUser.country,
       role: updatedUser.role,
+      image: updatedUser.image,
     });
   } else {
     res.status(404);
@@ -270,11 +271,9 @@ const forgetPassword = asyncHandler(async (req, res) => {
     await token.deleteOne();
   }
 
-  // CReate reset url
+  // Create reset url
 
   let resetToken = crypto.randomBytes(32).toString("hex") + user._id;
-
-  console.log(resetToken);
 
   // Hash before saving in DB
 

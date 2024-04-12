@@ -6,6 +6,8 @@ require("dotenv").config();
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
+const path = require("path");
+
 
 // important routes
 const userRoute = require("./routes/userRoute");
@@ -19,6 +21,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -30,13 +34,13 @@ app.use(
 app.use("/api/v1/users", userRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/package", packageRoute);
-app.use(errorhandler);
 //Home Route
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Home Page ",
   });
 });
+app.use(errorhandler);
 
 const StartServer = async () => {
   try {
