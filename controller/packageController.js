@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const { Package } = require("../models/packageModel");
 const { fileSizeFormatter } = require("../utils/fileUpload");
+const { Reviews } = require("../models/reviewModel");
+const Booking = require("../models/BookingModel");
 const cloudinary = require("cloudinary").v2;
 
 const createPackage = asyncHandler(async (req, res) => {
@@ -71,7 +73,9 @@ const createPackage = asyncHandler(async (req, res) => {
 
 // get all products
 const getallPackage = asyncHandler(async (req, res) => {
-  const packages = await Package.find({}).sort("-createdAt");
+  const packages = await Package.find({})
+    .sort("-createdAt")
+    .populate("reviews");
   res.status(200).json(packages);
 });
 // get single Package
@@ -113,9 +117,6 @@ const updatePackage = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Package not found");
   }
-  console.log(req.file);
-  console.log("****************************");
-  // console.log(req);
   // handle file upload
   let fileData = {};
   if (req.file) {
@@ -161,10 +162,66 @@ const updatePackage = asyncHandler(async (req, res) => {
   res.status(202).json(updatedPackage);
 });
 
+const getFiveData = asyncHandler(async (req, res) => {
+  const packages = await Package.find({}).sort("-createdAt").limit(5);
+  res.status(200).json(packages);
+});
+
+const createReview = asyncHandler(async (req, res) => {
+  const username = req.user.name;
+  const { review, rating, packageId } = req.body;
+  if (!username || !packageId || !review || !rating) {
+    res.status(400);
+    throw new Error("Please add all fields");
+  }
+  try {
+    const reviews = await Reviews.create({
+      username,
+      packageId,
+      review,
+      rating,
+    });
+    await Package.findByIdAndUpdate(packageId, {
+      $push: { reviews: reviews._id },
+    });
+
+    res.status(201).json(reviews);
+  } catch (error) {
+    res.status(400).json({ status: "fail", message: error });
+  }
+});
+
+const createBooking = asyncHandler(async (req, res) => {
+  const { phone, guests, date, packageId } = req.body;
+  console.log(req.body);
+  const userid = req.user.id;
+  console.log(userid);
+
+  if (!phone || !guests || !date || !packageId || !userid) {
+    res.status(400);
+    throw new Error("Please add all fields");
+  }
+  try {
+    const booking = await Booking.create({
+      phone,
+      guests,
+      bookAt: date,
+      packageId,
+      userId: userid,
+    });
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(400).json({ status: "fail", message: error });
+  }
+});
+
 module.exports = {
   createPackage,
   getallPackage,
   getSinglePackage,
   deletePackage,
   updatePackage,
+  getFiveData,
+  createReview,
+  createBooking,
 };

@@ -37,6 +37,12 @@ const PackageSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Reviews",
+      },
+    ],
   },
   {
     timestamps: true,
