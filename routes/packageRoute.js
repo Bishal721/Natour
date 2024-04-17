@@ -10,6 +10,7 @@ const {
   getFiveData,
   createReview,
   createBooking,
+  getTourBySearch,
 } = require("../controller/packageController");
 const { upload } = require("../utils/fileUpload");
 
@@ -28,4 +29,5 @@ router.patch(
 
 router.post("/createReview", Protected, createReview); // Create a new review
 router.post("/createBooking", Protected, createBooking);
+router.get("/search/getTourBySearch", getTourBySearch);
 module.exports = router;

@@ -189,7 +189,7 @@ const getUser = asyncHandler(async (req, res) => {
       country,
       image,
       role,
-    }); 
+    });
   } else {
     res.status(400);
     throw new Error("User not found");

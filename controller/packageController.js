@@ -215,6 +215,19 @@ const createBooking = asyncHandler(async (req, res) => {
   }
 });
 
+const getTourBySearch = asyncHandler(async (req, res) => {
+  const location = new RegExp(req.query.location, "i");
+
+  const package = await Package.find({ location });
+
+  res.status(200).json({
+    success: true,
+    message: "Successful",
+    count: package.length,
+    data: package,
+  });
+});
+
 module.exports = {
   createPackage,
   getallPackage,
@@ -224,4 +237,5 @@ module.exports = {
   getFiveData,
   createReview,
   createBooking,
+  getTourBySearch,
 };

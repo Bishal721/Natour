@@ -8,12 +8,12 @@ const app = express();
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-
 // important routes
 const userRoute = require("./routes/userRoute");
 const authRoutes = require("./routes/authRoute");
 const packageRoute = require("./routes/packageRoute");
-
+const hotelRoute = require("./routes/hotelRoute");
+const roomRoute = require("./routes/roomRoutes");
 const errorhandler = require("./middleware/errorhandler");
 
 // Middleware
@@ -34,6 +34,8 @@ app.use(
 app.use("/api/v1/users", userRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/package", packageRoute);
+app.use("/api/v1/hotels", hotelRoute);
+app.use("/api/v1/rooms", roomRoute);
 //Home Route
 app.get("/", (req, res) => {
   res.status(200).json({
