@@ -35,6 +35,24 @@ const createRoom = asyncHandler(async (req, res) => {
   res.status(200).json(savedRoom);
 });
 
+const updateRoomAvailability = asyncHandler(async (req, res) => {
+  if (!req.params.id || !req.body.dates) {
+    res.status(400);
+    throw new Error("Error Updating Room availability");
+  }
+  await Room.updateOne(
+    { "roomNumbers._id": req.params.id },
+    {
+      $push: {
+        "roomNumbers.$.unavailableDates": req.body.dates,
+      },
+    }
+  );
+  res
+    .status(200)
+    .json({ status: "success", message: "Room updated successfully" });
+});
+
 const updateRoom = asyncHandler(async (req, res) => {
   const updatedRoom = await Room.findByIdAndUpdate(
     req.params.id,
@@ -79,4 +97,11 @@ const getAllRoom = asyncHandler(async (req, res) => {
   res.status(200).json(room);
 });
 
-module.exports = { createRoom, updateRoom, deleteRoom, getRoom, getAllRoom };
+module.exports = {
+  createRoom,
+  updateRoom,
+  deleteRoom,
+  getRoom,
+  getAllRoom,
+  updateRoomAvailability,
+};

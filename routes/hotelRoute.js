@@ -7,6 +7,7 @@ const {
   getHotel,
   getAllHotels,
   countbyCity,
+  getHotelRooms,
 } = require("../controller/hotelController");
 const router = express.Router();
 
@@ -16,4 +17,5 @@ router.put("/:id", Protected, adminOnly, updateHotel);
 router.delete("/:id", Protected, adminOnly, deleteHotel);
 router.get("/find/:id", getHotel);
 router.get("/countByCity", countbyCity);
+router.get("/room/:id", getHotelRooms);
 module.exports = router;
