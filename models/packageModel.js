@@ -37,6 +37,14 @@ const PackageSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
+    startDate: {
+      type: Date,
+      required: [true, "A Tour must have a start date"],
+    },
+    endDate: {
+      type: Date,
+      required: [true, "A Tour must have an end date"],
+    },
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,

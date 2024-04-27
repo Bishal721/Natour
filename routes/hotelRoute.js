@@ -10,10 +10,11 @@ const {
   getHotelRooms,
 } = require("../controller/hotelController");
 const router = express.Router();
+const { upload } = require("../utils/fileUpload");
 
-router.post("/", Protected, adminOnly, createHotel);
+router.post("/", Protected, adminOnly, upload.single("photos"), createHotel);
 router.get("/", getAllHotels);
-router.put("/:id", Protected, adminOnly, updateHotel);
+router.put("/:id", Protected, adminOnly, upload.single("photos"), updateHotel);
 router.delete("/:id", Protected, adminOnly, deleteHotel);
 router.get("/find/:id", getHotel);
 router.get("/countByCity", countbyCity);

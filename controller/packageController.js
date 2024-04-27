@@ -14,6 +14,8 @@ const createPackage = asyncHandler(async (req, res) => {
     duration,
     difficulty,
     maxGroupSize,
+    startDate,
+    endDate,
   } = req.body;
   // Validation
   if (
@@ -23,7 +25,9 @@ const createPackage = asyncHandler(async (req, res) => {
     !description ||
     !duration ||
     !difficulty ||
-    !maxGroupSize
+    !maxGroupSize ||
+    !startDate ||
+    !endDate
   ) {
     res.status(400);
     throw new Error("Please add all fields");
@@ -63,6 +67,8 @@ const createPackage = asyncHandler(async (req, res) => {
       difficulty,
       maxGroupSize,
       image: fileData,
+      startDate,
+      endDate,
     });
 
     res.status(201).json(package);
