@@ -506,6 +506,48 @@ const otpCompare = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Account Verification Successful" });
 });
 
+// Get Users
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find().sort("-createdAt").select("-password");
+  if (!users) {
+    res.status(500);
+    throw new Error("Something went wrong");
+  }
+  res.status(200).json(users);
+});
+
+const upgradeUser = asyncHandler(async (req, res) => {
+  const { role, id } = req.body;
+
+  const user = await User.findById(id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  user.role = role;
+  await user.save();
+
+  res.status(200).json({
+    message: `User role updated to ${role}`,
+  });
+});
+
+// Delete User
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  await user.deleteOne();
+  res.status(200).json({
+    message: "User deleted successfully",
+  });
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -519,4 +561,7 @@ module.exports = {
   google,
   generateEmailOtp,
   otpCompare,
+  getAllUsers,
+  upgradeUser,
+  deleteUser,
 };

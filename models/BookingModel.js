@@ -7,10 +7,6 @@ const BookingSchema = mongoose.Schema(
       required: true,
       ref: "User",
     },
-    phone: {
-      type: Number,
-      required: true,
-    },
     guests: {
       type: Number,
       required: true,
@@ -19,6 +15,10 @@ const BookingSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Package",
+    },
+    price: {
+      type: Number,
+      required: true,
     },
     bookAt: {
       type: Date,

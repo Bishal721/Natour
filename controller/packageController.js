@@ -86,7 +86,7 @@ const getallPackage = asyncHandler(async (req, res) => {
 });
 // get single Package
 const getSinglePackage = asyncHandler(async (req, res) => {
-  const packages = await Package.findById(req.params.id);
+  const packages = await Package.findById(req.params.id).populate("reviews");
   if (!packages) {
     res.status(404);
     throw new Error("Package not found");
@@ -116,6 +116,8 @@ const updatePackage = asyncHandler(async (req, res) => {
     duration,
     difficulty,
     maxGroupSize,
+    startDate,
+    endDate,
   } = req.body;
   const { id } = req.params;
   const package = await Package.findById(id);
@@ -158,6 +160,8 @@ const updatePackage = asyncHandler(async (req, res) => {
       maxGroupSize,
       description,
       image: Object.keys(fileData).length === 0 ? Package.image : fileData,
+      startDate,
+      endDate,
     },
     {
       new: true,
@@ -198,27 +202,44 @@ const createReview = asyncHandler(async (req, res) => {
 });
 
 const createBooking = asyncHandler(async (req, res) => {
-  const { phone, guests, date, packageId } = req.body;
-  console.log(req.body);
+  const { guests, date, packageId, price } = req.body;
   const userid = req.user.id;
-  console.log(userid);
 
-  if (!phone || !guests || !date || !packageId || !userid) {
+  if (!guests || !date || !packageId || !userid || !price) {
     res.status(400);
     throw new Error("Please add all fields");
   }
-  try {
-    const booking = await Booking.create({
-      phone,
-      guests,
-      bookAt: date,
-      packageId,
-      userId: userid,
-    });
-    res.status(201).json(booking);
-  } catch (error) {
-    res.status(400).json({ status: "fail", message: error });
+  const package = await Package.findById(packageId);
+  const updateSpace = package.occupiedSpace + Number(guests);
+
+  if (package.maxGroupSize < updateSpace) {
+    res.status(400);
+    throw new Error("Booking has exceeded the max group size");
   }
+
+  const pack = await Package.findByIdAndUpdate(
+    packageId,
+    { $set: { occupiedSpace: updateSpace } },
+    { new: true }
+  );
+  if (!pack) {
+    res.status(400);
+    throw new Error("Error Updating the package");
+  }
+  const booking = await Booking.create({
+    guests,
+    bookAt: date,
+    packageId,
+    userId: userid,
+    price,
+  });
+
+  if (!booking) {
+    res.status(400);
+    throw new Error("Error Updating the booking");
+  }
+
+  res.status(201).json(booking);
 });
 
 const getTourBySearch = asyncHandler(async (req, res) => {
@@ -234,6 +255,15 @@ const getTourBySearch = asyncHandler(async (req, res) => {
   });
 });
 
+const getAllBookings = asyncHandler(async (req, res) => {
+  const booking = await Booking.find()
+    .sort("-createdAt")
+    .populate("userId")
+    .populate("packageId");
+  console.log(booking);
+  res.status(200).json(booking);
+});
+
 module.exports = {
   createPackage,
   getallPackage,
@@ -244,4 +274,5 @@ module.exports = {
   createReview,
   createBooking,
   getTourBySearch,
+  getAllBookings,
 };

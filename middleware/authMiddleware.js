@@ -18,6 +18,12 @@ const Protected = asyncHandler(async (req, res, next) => {
       res.status(400);
       throw new Error("User not found");
     }
+
+    if (user.role === "suspended") {
+      res.status(400);
+      throw new Error("User suspended, please contact support");
+    }
+
     req.user = user;
     next();
   } catch (error) {

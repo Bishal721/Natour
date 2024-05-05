@@ -19,6 +19,18 @@ const PackageSchema = mongoose.Schema(
       type: Number,
       required: [true, "A Group must have a group size"],
     },
+    occupiedSpace: {
+      type: Number,
+      default: 0,
+      min: 0,
+      required: true,
+      validate: {
+        validator: function (val) {
+          return val <= this.maxGroupSize;
+        },
+        message: "Occupied Space should not be greater than maxGroupSize",
+      },
+    },
     difficulty: {
       type: String,
       enum: ["Easy", "Medium", "Hard"],
