@@ -12,6 +12,7 @@ const {
   createBooking,
   getTourBySearch,
   getAllBookings,
+  cancelBooking,
 } = require("../controller/packageController");
 const { upload } = require("../utils/fileUpload");
 
@@ -32,4 +33,5 @@ router.post("/createReview", Protected, createReview); // Create a new review
 router.post("/createBooking", Protected, createBooking);
 router.get("/book/getAllBooking", getAllBookings);
 router.get("/search/getTourBySearch", getTourBySearch);
+router.patch("/cancelBooking/:id", Protected, cancelBooking);
 module.exports = router;

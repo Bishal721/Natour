@@ -232,6 +232,7 @@ const createBooking = asyncHandler(async (req, res) => {
     packageId,
     userId: userid,
     price,
+    status: "Booked",
   });
 
   if (!booking) {
@@ -264,6 +265,22 @@ const getAllBookings = asyncHandler(async (req, res) => {
   res.status(200).json(booking);
 });
 
+const cancelBooking = asyncHandler(async (req, res) => {
+  console.log(req.params.id);
+  const cancelbooking = await Booking.findById(req.params.id);
+
+  if (!cancelbooking) {
+    res.status(404);
+    throw new Error("Booking not found");
+  }
+  cancelbooking.status = "Canceled";
+  await cancelbooking.save();
+
+  res.status(200).json({
+    message: "Booking Canceled successfully",
+  });
+});
+
 module.exports = {
   createPackage,
   getallPackage,
@@ -275,4 +292,5 @@ module.exports = {
   createBooking,
   getTourBySearch,
   getAllBookings,
+  cancelBooking,
 };

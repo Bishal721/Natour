@@ -20,6 +20,11 @@ const BookingSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["Booked", "Canceled"],
+      required: true,
+    },
     bookAt: {
       type: Date,
       required: true,
