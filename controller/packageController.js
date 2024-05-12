@@ -11,26 +11,28 @@ const createPackage = asyncHandler(async (req, res) => {
     location,
     price,
     description,
-    duration,
     difficulty,
     maxGroupSize,
-    startDate,
-    endDate,
+    duration,
+    recurringDates, // Add recurring dates to request body
   } = req.body;
+  const parsedRecurringDates = JSON.parse(recurringDates);
   // Validation
   if (
     !name ||
     !location ||
     !price ||
     !description ||
-    !duration ||
     !difficulty ||
+    !duration ||
     !maxGroupSize ||
-    !startDate ||
-    !endDate
+    !recurringDates || // Check if recurringDates are provided
+    recurringDates.length === 0 // Check if recurringDates array is not empty
   ) {
     res.status(400);
-    throw new Error("Please add all fields");
+    throw new Error(
+      "Please provide all required fields including recurringDates"
+    );
   }
 
   // handle file upload
@@ -56,19 +58,17 @@ const createPackage = asyncHandler(async (req, res) => {
     };
   }
 
-  // Create package
   try {
     const package = await Package.create({
       name,
       location,
       price,
       description,
-      duration,
       difficulty,
       maxGroupSize,
+      duration,
       image: fileData,
-      startDate,
-      endDate,
+      recurringDates: parsedRecurringDates, // Include recurring dates in the creation
     });
 
     res.status(201).json(package);
@@ -116,9 +116,9 @@ const updatePackage = asyncHandler(async (req, res) => {
     duration,
     difficulty,
     maxGroupSize,
-    startDate,
-    endDate,
+    recurringDates, // Add recurring dates to request body
   } = req.body;
+  const parsedRecurringDates = JSON.parse(recurringDates);
   const { id } = req.params;
   const package = await Package.findById(id);
   if (!package) {
@@ -160,8 +160,7 @@ const updatePackage = asyncHandler(async (req, res) => {
       maxGroupSize,
       description,
       image: Object.keys(fileData).length === 0 ? Package.image : fileData,
-      startDate,
-      endDate,
+      recurringDates: parsedRecurringDates, // Include recurring dates in the creation
     },
     {
       new: true,

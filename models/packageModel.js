@@ -1,5 +1,16 @@
 const mongoose = require("mongoose");
 
+const RecurringDateSchema = mongoose.Schema({
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+});
+
 const PackageSchema = mongoose.Schema(
   {
     name: {
@@ -8,7 +19,7 @@ const PackageSchema = mongoose.Schema(
       unique: true,
     },
     duration: {
-      type: String,
+      type: Number,
       required: [true, "A Tour Must have a duration "],
     },
     location: {
@@ -49,14 +60,7 @@ const PackageSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
-    startDate: {
-      type: Date,
-      required: [true, "A Tour must have a start date"],
-    },
-    endDate: {
-      type: Date,
-      required: [true, "A Tour must have an end date"],
-    },
+    recurringDates: [RecurringDateSchema], // Array of recurring dates
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
