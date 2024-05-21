@@ -9,6 +9,19 @@ const RecurringDateSchema = mongoose.Schema({
     type: Date,
     required: true,
   },
+  occupiedSpace: {
+    type: Number,
+    default: 0,
+    min: 0,
+    required: true,
+    validate: {
+      validator: function (val) {
+        // Access maxGroupSize from the parent document
+        return val <= this.parent().maxGroupSize;
+      },
+      message: "Occupied Space should not be greater than maxGroupSize",
+    },
+  },
 });
 
 const PackageSchema = mongoose.Schema(
@@ -29,18 +42,6 @@ const PackageSchema = mongoose.Schema(
     maxGroupSize: {
       type: Number,
       required: [true, "A Group must have a group size"],
-    },
-    occupiedSpace: {
-      type: Number,
-      default: 0,
-      min: 0,
-      required: true,
-      validate: {
-        validator: function (val) {
-          return val <= this.maxGroupSize;
-        },
-        message: "Occupied Space should not be greater than maxGroupSize",
-      },
     },
     difficulty: {
       type: String,

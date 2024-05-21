@@ -82,8 +82,10 @@ const getallPackage = asyncHandler(async (req, res) => {
   const packages = await Package.find({})
     .sort("-createdAt")
     .populate("reviews");
+
   res.status(200).json(packages);
 });
+
 // get single Package
 const getSinglePackage = asyncHandler(async (req, res) => {
   const packages = await Package.findById(req.params.id).populate("reviews");
@@ -201,26 +203,51 @@ const createReview = asyncHandler(async (req, res) => {
 });
 
 const createBooking = asyncHandler(async (req, res) => {
-  const { guests, date, packageId, price } = req.body;
+  const { guests, date, packageId, price, Bookfor, dateId } = req.body;
   const userid = req.user.id;
 
-  if (!guests || !date || !packageId || !userid || !price) {
+  if (
+    !guests ||
+    !date ||
+    !packageId ||
+    !userid ||
+    !price ||
+    !Bookfor ||
+    !dateId
+  ) {
     res.status(400);
     throw new Error("Please add all fields");
   }
   const package = await Package.findById(packageId);
-  const updateSpace = package.occupiedSpace + Number(guests);
+  // console.log(package);
+
+  const data = package.recurringDates.find(
+    (rec) => rec._id.toString() === dateId
+  );
+
+  if (!data) {
+    res.status(404);
+    throw new Error("Date not found in package");
+  }
+
+  console.log("matched");
+  const updateSpace = data.occupiedSpace + Number(guests);
 
   if (package.maxGroupSize < updateSpace) {
     res.status(400);
     throw new Error("Booking has exceeded the max group size");
   }
 
-  const pack = await Package.findByIdAndUpdate(
-    packageId,
-    { $set: { occupiedSpace: updateSpace } },
-    { new: true }
-  );
+  data.occupiedSpace = updateSpace;
+
+  // Save the modified package
+  const pack = await package.save();
+
+  // const pack = await Package.findByIdAndUpdate(
+  //   packageId,
+  //   { $set: { occupiedSpace: updateSpace } },
+  //   { new: true }
+  // );
   if (!pack) {
     res.status(400);
     throw new Error("Error Updating the package");
@@ -232,6 +259,7 @@ const createBooking = asyncHandler(async (req, res) => {
     userId: userid,
     price,
     status: "Booked",
+    Bookedfor: Bookfor,
   });
 
   if (!booking) {
@@ -260,7 +288,6 @@ const getAllBookings = asyncHandler(async (req, res) => {
     .sort("-createdAt")
     .populate("userId")
     .populate("packageId");
-  console.log(booking);
   res.status(200).json(booking);
 });
 

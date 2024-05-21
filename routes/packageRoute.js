@@ -15,9 +15,12 @@ const {
   cancelBooking,
 } = require("../controller/packageController");
 const { upload } = require("../utils/fileUpload");
+const { checkout } = require("../controller/paymentController");
 
 router.post("/", Protected, adminOnly, upload.single("image"), createPackage);
 router.get("/", getallPackage); // Get all package
+// Payment api
+router.post("/checkout", checkout);
 router.get("/getFivePackages", getFiveData); // Get five package
 router.get("/:id", getSinglePackage); // Get single package
 router.delete("/:id", Protected, adminOnly, deletePackage); // Delete package
