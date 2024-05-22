@@ -230,7 +230,6 @@ const createBooking = asyncHandler(async (req, res) => {
     throw new Error("Date not found in package");
   }
 
-  console.log("matched");
   const updateSpace = data.occupiedSpace + Number(guests);
 
   if (package.maxGroupSize < updateSpace) {
