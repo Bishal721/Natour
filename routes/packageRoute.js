@@ -13,10 +13,14 @@ const {
   getTourBySearch,
   getAllBookings,
   cancelBooking,
+  getExtraPeople,
 } = require("../controller/packageController");
 const { upload } = require("../utils/fileUpload");
 const { checkout } = require("../controller/paymentController");
 
+// Routes
+
+router.get("/getMaxPeople", Protected, getExtraPeople);
 router.post("/", Protected, adminOnly, upload.single("image"), createPackage);
 router.get("/", getallPackage); // Get all package
 // Payment api
