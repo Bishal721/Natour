@@ -115,71 +115,6 @@ const deletePackage = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Package deleted." });
 });
 
-// const updatePackage = asyncHandler(async (req, res) => {
-//   const {
-//     name,
-//     location,
-//     price,
-//     description,
-//     duration,
-//     difficulty,
-//     maxGroupSize,
-//     minGroupSize,
-//     recurringDates, // Add recurring dates to request body
-//   } = req.body;
-//   console.log(recurringDates);
-//   const parsedRecurringDates = JSON.parse(recurringDates);
-//   const { id } = req.params;
-//   const package = await Package.findById(id);
-//   if (!package) {
-//     res.status(404);
-//     throw new Error("Package not found");
-//   }
-//   // handle file upload
-//   let fileData = {};
-//   if (req.file) {
-//     // save in cloudinary
-//     let uploadImage;
-//     try {
-//       uploadImage = await cloudinary.uploader.upload(req.file.path, {
-//         folder: "Natours",
-//         resource_type: "image",
-//       });
-//     } catch (error) {
-//       res.status(500);
-//       throw new Error("Image could not be uploaded");
-//     }
-
-//     fileData = {
-//       fileName: req.file.originalname,
-//       filePath: uploadImage.secure_url,
-//       fileType: req.file.mimetype,
-//       fileSize: fileSizeFormatter(req.file.size, 2),
-//     };
-//   }
-//   // update products
-//   const updatedPackage = await Package.findByIdAndUpdate(
-//     { _id: id },
-//     {
-//       name,
-//       location,
-//       price,
-//       description,
-//       duration,
-//       difficulty,
-//       maxGroupSize,
-//       minGroupSize,
-//       image: Object.keys(fileData).length === 0 ? Package.image : fileData,
-//       recurringDates: parsedRecurringDates, // Include recurring dates in the creation
-//     },
-//     {
-//       new: true,
-//       runValidators: true,
-//     }
-//   );
-//   res.status(202).json(updatedPackage);
-// });
-
 const updatePackage = asyncHandler(async (req, res) => {
   const {
     name,
@@ -282,8 +217,16 @@ const createReview = asyncHandler(async (req, res) => {
 });
 
 const createBooking = asyncHandler(async (req, res) => {
-  const { guests, date, packageId, price, Bookfor, dateId, extraPeople } =
-    req.body;
+  const {
+    guests,
+    date,
+    packageId,
+    price,
+    Bookfor,
+    dateId,
+    extraPeople,
+    specificDateId,
+  } = req.body;
   const userid = req.user.id;
 
   if (
@@ -293,7 +236,8 @@ const createBooking = asyncHandler(async (req, res) => {
     !userid ||
     !price ||
     !Bookfor ||
-    !dateId
+    !dateId ||
+    !specificDateId
   ) {
     res.status(400);
     throw new Error("Please add all fields");
@@ -339,12 +283,6 @@ const createBooking = asyncHandler(async (req, res) => {
   }
   // Save the modified package
   const pack = await package.save();
-
-  // const pack = await Package.findByIdAndUpdate(
-  //   packageId,
-  //   { $set: { occupiedSpace: updateSpace } },
-  //   { new: true }
-  // );
   if (!pack) {
     res.status(400);
     throw new Error("Error Updating the package");
@@ -357,6 +295,7 @@ const createBooking = asyncHandler(async (req, res) => {
     price,
     status: "Booked",
     Bookedfor: Bookfor,
+    specificDateId,
   });
 
   if (!booking) {
@@ -388,19 +327,83 @@ const getAllBookings = asyncHandler(async (req, res) => {
   res.status(200).json(booking);
 });
 
+const getSingleBooking = asyncHandler(async (req, res) => {
+  const booking = await Booking.find({ userId: req.user._id })
+    .sort("-createdAt")
+    .populate("userId")
+    .populate("packageId");
+  res.status(200).json(booking);
+});
+
+// const cancelBooking = asyncHandler(async (req, res) => {
+//   const cancelbooking = await Booking.findById(req.params.id)
+//     .sort("-createdAt")
+//     .populate("packageId");
+
+//   console.log(cancelbooking.packageId.recurringDates);
+//   console.log(cancelbooking.specificDateId);
+//   if (!cancelbooking) {
+//     res.status(404);
+//     throw new Error("Booking not found");
+//   }
+//   // cancelbooking.status = "Canceled";
+//   // await cancelbooking.save();
+
+//   res.status(200).json({
+//     message: "Booking Canceled successfully",
+//   });
+// });
 const cancelBooking = asyncHandler(async (req, res) => {
-  console.log(req.params.id);
-  const cancelbooking = await Booking.findById(req.params.id);
+  const cancelbooking = await Booking.findById(req.params.id).populate(
+    "packageId"
+  );
 
   if (!cancelbooking) {
     res.status(404);
     throw new Error("Booking not found");
   }
+
+  const { guests, specificDateId } = cancelbooking;
+  const recurringDate = cancelbooking.packageId.recurringDates.find(
+    (date) => date._id.toString() === specificDateId
+  );
+
+  if (!recurringDate) {
+    res.status(404);
+    throw new Error("Recurring date not found");
+  }
+
+  let remainingGuests = guests;
+
+  // Reduce guests from extraPeople first
+  if (recurringDate.extraPeople >= remainingGuests) {
+    recurringDate.extraPeople -= remainingGuests;
+    remainingGuests = 0;
+  } else {
+    remainingGuests -= recurringDate.extraPeople;
+    recurringDate.extraPeople = 0;
+  }
+
+  // If extraPeople is not enough, reduce the remaining guests from occupiedSpace
+  if (remainingGuests > 0) {
+    if (recurringDate.occupiedSpace >= remainingGuests) {
+      recurringDate.occupiedSpace -= remainingGuests;
+    } else {
+      // This should generally not happen if your data is consistent, but handle it gracefully
+      return res.status(400).json({
+        message: "Not enough space to cancel the booking properly",
+      });
+    }
+  }
+
+  // Save the changes
+  await cancelbooking.packageId.save();
+  // Optionally, update the booking status to canceled
   cancelbooking.status = "Canceled";
   await cancelbooking.save();
 
   res.status(200).json({
-    message: "Booking Canceled successfully",
+    message: "Booking canceled successfully",
   });
 });
 
@@ -417,4 +420,5 @@ module.exports = {
   getAllBookings,
   cancelBooking,
   getExtraPeople,
+  getSingleBooking,
 };

@@ -14,6 +14,7 @@ const {
   getAllBookings,
   cancelBooking,
   getExtraPeople,
+  getSingleBooking,
 } = require("../controller/packageController");
 const { upload } = require("../utils/fileUpload");
 const { checkout } = require("../controller/paymentController");
@@ -25,9 +26,9 @@ router.post("/", Protected, adminOnly, upload.single("image"), createPackage);
 router.get("/", getallPackage); // Get all package
 // Payment api
 router.post("/checkout", checkout);
+router.patch("/cancelBooking/:id", Protected, cancelBooking);
 router.get("/getFivePackages", getFiveData); // Get five package
 router.get("/:id", getSinglePackage); // Get single package
-router.delete("/:id", Protected, adminOnly, deletePackage); // Delete package
 router.patch(
   "/:id",
   Protected,
@@ -38,7 +39,9 @@ router.patch(
 
 router.post("/createReview", Protected, createReview); // Create a new review
 router.post("/createBooking", Protected, createBooking);
-router.get("/book/getAllBooking", getAllBookings);
+router.get("/book/getAllBooking", Protected, getAllBookings);
+router.get("/book/getUserSpecific", Protected, getSingleBooking);
 router.get("/search/getTourBySearch", getTourBySearch);
-router.patch("/cancelBooking/:id", Protected, cancelBooking);
+router.delete("/:id", Protected, adminOnly, deletePackage); // Delete package
+
 module.exports = router;
