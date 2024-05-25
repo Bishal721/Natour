@@ -2,8 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { Package, maxExtraPeople } = require("../models/packageModel");
 const { fileSizeFormatter } = require("../utils/fileUpload");
 const { Reviews } = require("../models/reviewModel");
-const Booking = require("../models/BookingModel");
-const { response } = require("express");
+const { Booking, CustomBooking } = require("../models/BookingModel");
 const cloudinary = require("cloudinary").v2;
 
 const createPackage = asyncHandler(async (req, res) => {
@@ -335,24 +334,6 @@ const getSingleBooking = asyncHandler(async (req, res) => {
   res.status(200).json(booking);
 });
 
-// const cancelBooking = asyncHandler(async (req, res) => {
-//   const cancelbooking = await Booking.findById(req.params.id)
-//     .sort("-createdAt")
-//     .populate("packageId");
-
-//   console.log(cancelbooking.packageId.recurringDates);
-//   console.log(cancelbooking.specificDateId);
-//   if (!cancelbooking) {
-//     res.status(404);
-//     throw new Error("Booking not found");
-//   }
-//   // cancelbooking.status = "Canceled";
-//   // await cancelbooking.save();
-
-//   res.status(200).json({
-//     message: "Booking Canceled successfully",
-//   });
-// });
 const cancelBooking = asyncHandler(async (req, res) => {
   const cancelbooking = await Booking.findById(req.params.id).populate(
     "packageId"
@@ -407,6 +388,83 @@ const cancelBooking = asyncHandler(async (req, res) => {
   });
 });
 
+const createCustomBooking = asyncHandler(async (req, res) => {
+  const { guests, date, packageId, price, Bookfor, duration } = req.body;
+  const userid = req.user.id;
+  console.log(guests, date, packageId, price, Bookfor, duration);
+  if (
+    !guests ||
+    !date ||
+    !packageId ||
+    !userid ||
+    !price ||
+    !Bookfor ||
+    !duration
+  ) {
+    res.status(400);
+    throw new Error("Please add all fields");
+  }
+  const booking = await CustomBooking.create({
+    guests: guests,
+    bookAt: date,
+    packageId,
+    userId: userid,
+    price,
+    duration,
+    status: "Booked",
+    Bookedfor: Bookfor.startDate,
+  });
+  if (!booking) {
+    res.status(400);
+    throw new Error("Error Updating the booking");
+  }
+  console.log(booking);
+  res.status(201).json(booking);
+});
+
+const getAllCustomBookings = asyncHandler(async (req, res) => {
+  const booking = await CustomBooking.find()
+    .sort("-createdAt")
+    .populate("userId")
+    .populate({
+      path: "packageId",
+      select: "-recurringDates",
+    });
+  res.status(200).json(booking);
+});
+
+const getSingleCustomBooking = asyncHandler(async (req, res) => {
+  const booking = await CustomBooking.find({ userId: req.user._id })
+    .sort("-createdAt")
+    .populate("userId")
+    .populate({
+      path: "packageId",
+      select: "-recurringDates",
+    });
+  res.status(200).json(booking);
+});
+
+const cancelCustomBooking = asyncHandler(async (req, res) => {
+  const cancelbooking = await CustomBooking.findById(req.params.id).populate({
+    path: "packageId",
+    select: "-recurringDates, -reviews",
+  });
+  console.log(cancelbooking);
+  if (!cancelbooking) {
+    res.status(404);
+    throw new Error("Booking not found");
+  }
+  if (cancelbooking.status === "Canceled") {
+    res.status(404);
+    throw new Error("Package Already canceled");
+  }
+  cancelbooking.status = "Canceled";
+  await cancelbooking.save();
+
+  res.status(200).json({
+    message: "Custom Booking canceled successfully",
+  });
+});
 module.exports = {
   createPackage,
   getallPackage,
@@ -421,4 +479,8 @@ module.exports = {
   cancelBooking,
   getExtraPeople,
   getSingleBooking,
+  createCustomBooking,
+  getAllCustomBookings,
+  getSingleCustomBooking,
+  cancelCustomBooking,
 };
