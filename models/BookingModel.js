@@ -91,6 +91,48 @@ const CustomSchema = mongoose.Schema(
   }
 );
 
+const HotelReserveSchema = mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "User",
+  },
+  hotelId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: "Hotel",
+  },
+  roomId: [
+    {
+      type: String,
+      required: true,
+    },
+  ],
+  Bookedfor: [
+    {
+      startDate: {
+        type: Date,
+        required: true,
+      },
+      endDate: {
+        type: Date,
+        required: true,
+      },
+    },
+  ],
+  status: {
+    type: String,
+    enum: ["Reserved", "Available"],
+    default: "Available",
+    required: true,
+  },
+  bookAt: {
+    type: Date,
+    required: true,
+  },
+});
+
 const Booking = mongoose.model("Booking", BookingSchema);
 const CustomBooking = mongoose.model("CustomBooking", CustomSchema);
-module.exports = { Booking, CustomBooking };
+const HOTELBOOKING = mongoose.model("ReserveHotel", HotelReserveSchema);
+module.exports = { Booking, CustomBooking, HOTELBOOKING };

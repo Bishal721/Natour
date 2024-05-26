@@ -81,7 +81,8 @@ const createPackage = asyncHandler(async (req, res) => {
 
 // get all products
 const getallPackage = asyncHandler(async (req, res) => {
-  const packages = await Package.find({})
+  const location = new RegExp(req.query.location, "i");
+  const packages = await Package.find({location})
     .sort("-createdAt")
     .populate("reviews");
 
@@ -391,7 +392,6 @@ const cancelBooking = asyncHandler(async (req, res) => {
 const createCustomBooking = asyncHandler(async (req, res) => {
   const { guests, date, packageId, price, Bookfor, duration } = req.body;
   const userid = req.user.id;
-  console.log(guests, date, packageId, price, Bookfor, duration);
   if (
     !guests ||
     !date ||
@@ -418,7 +418,6 @@ const createCustomBooking = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Error Updating the booking");
   }
-  console.log(booking);
   res.status(201).json(booking);
 });
 
