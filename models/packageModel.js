@@ -1,15 +1,56 @@
 const mongoose = require("mongoose");
 
+const RecurringDateSchema = mongoose.Schema({
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+  occupiedSpace: {
+    type: Number,
+    default: 0,
+    min: 0,
+    required: true,
+    validate: {
+      validator: function (val) {
+        // Only validate occupiedSpace if it is being modified
+        if (this.isModified("occupiedSpace")) {
+          // Access maxGroupSize from the parent document
+          return val <= this.parent().maxGroupSize;
+        }
+        // If occupiedSpace is not being modified, validation passes
+        return true;
+      },
+      message: "Occupied Space should not be greater than maxGroupSize",
+    },
+  },
+  extraPeople: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 10,
+  },
+  status: {
+    type: String,
+    enum: ["full", "partial"],
+    required: true,
+    default: "partial",
+  },
+});
+
 const PackageSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "A Tour Must have a Name "],
+      required: [true, "A Tour Must have a Name"],
       unique: true,
     },
     duration: {
-      type: String,
-      required: [true, "A Tour Must have a duration "],
+      type: Number,
+      required: [true, "A Tour Must have a duration"],
     },
     location: {
       type: String,
@@ -18,18 +59,14 @@ const PackageSchema = mongoose.Schema(
     maxGroupSize: {
       type: Number,
       required: [true, "A Group must have a group size"],
+      default: 2,
+      min: 2,
     },
-    occupiedSpace: {
+    minGroupSize: {
       type: Number,
-      default: 0,
-      min: 0,
-      required: true,
-      validate: {
-        validator: function (val) {
-          return val <= this.maxGroupSize;
-        },
-        message: "Occupied Space should not be greater than maxGroupSize",
-      },
+      required: [true, "A Group must have a minimum group size"],
+      default: 1,
+      min: 1,
     },
     difficulty: {
       type: String,
@@ -49,14 +86,7 @@ const PackageSchema = mongoose.Schema(
       type: Object,
       default: {},
     },
-    startDate: {
-      type: Date,
-      required: [true, "A Tour must have a start date"],
-    },
-    endDate: {
-      type: Date,
-      required: [true, "A Tour must have an end date"],
-    },
+    recurringDates: [RecurringDateSchema], // Array of recurring dates
     reviews: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -68,9 +98,11 @@ const PackageSchema = mongoose.Schema(
     timestamps: true,
   }
 );
-
+// Exporting the max value directly
+const maxExtraPeople = RecurringDateSchema.path("extraPeople").options.max;
 const Package = mongoose.model("Package", PackageSchema);
 
 module.exports = {
   Package,
+  maxExtraPeople,
 };

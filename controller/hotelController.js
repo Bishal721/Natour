@@ -7,7 +7,6 @@ const cloudinary = require("cloudinary").v2;
 const createHotel = asyncHandler(async (req, res) => {
   const { name, city, address, distance, desc, cheapestPrice, rooms } =
     req.body;
-  // console.log(req);
   if (
     !name ||
     !city ||
@@ -56,43 +55,6 @@ const createHotel = asyncHandler(async (req, res) => {
 
   res.status(200).json(hotels);
 });
-
-// const updateHotel = asyncHandler(async (req, res) => {
-//   console.log(req.body);
-//   console.log(req.params);
-
-//   // handle file upload
-//   let fileData = {};
-//   if (req.file) {
-//     // save in cloudinary
-//     let uploadImage;
-//     try {
-//       uploadImage = await cloudinary.uploader.upload(req.file.path, {
-//         folder: "Natours",
-//         resource_type: "image",
-//       });
-//     } catch (error) {
-//       res.status(500);
-//       throw new Error("Image could not be uploaded");
-//     }
-
-//     fileData = {
-//       fileName: req.file.originalname,
-//       filePath: uploadImage.secure_url,
-//       fileType: req.file.mimetype,
-//       fileSize: fileSizeFormatter(req.file.size, 2),
-//     };
-//   }
-//   const updatedHotel = await Hotel.findByIdAndUpdate(
-//     req.params.id,
-//     { $set: req.body },
-//     {
-//       photos: Object.keys(fileData).length === 0 ? Hotel.photos : fileData,
-//     },
-//     { new: true }
-//   );
-//   res.status(200).json(updatedHotel);
-// });
 
 const updateHotel = asyncHandler(async (req, res) => {
   // Fetch existing hotel data
@@ -215,16 +177,7 @@ const getHotelRooms = asyncHandler(async (req, res) => {
   const validRooms = rooms.filter((room) => room !== null);
   res.status(200).json(validRooms);
 });
-// const getHotelRooms = asyncHandler(async (req, res) => {
-//   const hotel = await Hotel.findById(req.params.id);
-//   const list = await Promise.all(
-//     hotel.rooms.map(async (room) => {
-//       console.log(room);
-//       return await Room.findById(room);
-//     })
-//   );
-//   console.log(list);
-//   res.status(200).json(list);
+
 // });
 module.exports = {
   createHotel,
